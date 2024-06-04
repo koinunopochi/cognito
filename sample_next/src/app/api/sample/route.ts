@@ -1,5 +1,25 @@
 // app/api/sample/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import config from '@/app/auth/config.json';
+
+const userPoolId = config.userPoolId;
+const clientId = config.clientId;
+// const clientSecret = config.clientSecret;
+
+// if (!userPoolId || !clientId || !clientSecret) {
+if (!userPoolId || !clientId) {
+  throw new Error(
+    'COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, and COGNITO_CLIENT_SECRET must be set'
+  );
+}
+
+const verifier = CognitoJwtVerifier.create({
+  userPoolId: userPoolId as string,
+  tokenUse: 'access',
+  clientId: clientId as string,
+  // clientSecret: clientSecret as string,
+});
 
 const mockData = {
   'user1@example.com': {
@@ -20,18 +40,44 @@ const mockData = {
 };
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const email = searchParams.get('email');
+  const accessToken = request.headers
+    .get('Authorization')
+    ?.replace('Bearer ', '');
 
-  if (email) {
-    const data = mockData[email];
+  // console.log('accessToken: ', accessToken);
 
-    if (data) {
-      return NextResponse.json(data);
+  if (!accessToken) {
+    return NextResponse.json(
+      { error: 'Access token is required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const payload = await verifier.verify(accessToken);
+
+    console.log('payload: ', payload);
+    const email = payload.username;
+
+    if (email) {
+      const data = mockData[email];
+
+      if (data) {
+        return NextResponse.json(data);
+      } else {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
     } else {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Invalid access token' },
+        { status: 401 }
+      );
     }
-  } else {
-    return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+  } catch (error) {
+    console.error('Error verifying access token: ', error);
+    return NextResponse.json(
+      { error: 'Invalid access token' },
+      { status: 401 }
+    );
   }
 }

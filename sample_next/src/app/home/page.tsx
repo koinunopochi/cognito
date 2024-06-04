@@ -15,21 +15,32 @@ export default function HomePage() {
       const session: any = await getSession();
       setSession(session);
 
-      if (session && session.email) {
-        fetchUserData(session.email);
+      if (session && session.accessToken) {
+        console.log('session: ', session);
+        fetchUserData(session.email,session.accessToken);
       }
     };
 
     fetchSession();
   }, []);
 
-  const fetchUserData = async (email: string) => {
+  const fetchUserData = async (email:string,accessToken: string) => {
     try {
       const response = await fetch(
-        `/api/sample?email=${encodeURIComponent(email)}`
+        `/api/sample?email=${encodeURIComponent(email)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
       );
-      const data = await response.json();
-      setUserData(data);
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data);
+      } else {
+        console.error('Error fetching user data: ', response.statusText);
+      }
     } catch (error) {
       console.error('Error fetching user data: ', error);
     }

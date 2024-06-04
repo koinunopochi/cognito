@@ -99,6 +99,7 @@ export const getSession = async () => {
       if (response.Username) {
         return {
           email: response.UserAttributes?.find(attr => attr.Name === 'email')?.Value || '',
+          accessToken: accessToken,
           // その他のセッション情報を追加できます
         };
       } else {
