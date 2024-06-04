@@ -1,15 +1,12 @@
-// src/app/auth/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, signUp } from '../authService';
+import { signIn } from '../authService';
 
-const AuthPage = () => {
+const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
 
   const handleSignIn = async (e: { preventDefault: () => void }) => {
@@ -32,27 +29,11 @@ const AuthPage = () => {
     }
   };
 
-  const handleSignUp = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-    try {
-      await signUp(email, password);
-      router.push('/confirm', { query: { email } });
-    } catch (error) {
-      alert(`Sign up failed: ${error}`);
-    }
-  };
-
   return (
     <div className="loginForm">
       <h1>Welcome</h1>
-      <h4>
-        {isSignUp ? 'Sign up to create an account' : 'Sign in to your account'}
-      </h4>
-      <form onSubmit={isSignUp ? handleSignUp : handleSignIn}>
+      <h4>Sign in to your account</h4>
+      <form onSubmit={handleSignIn}>
         <div>
           <input
             className="inputText"
@@ -75,28 +56,13 @@ const AuthPage = () => {
             required
           />
         </div>
-        {isSignUp && (
-          <div>
-            <input
-              className="inputText"
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm Password"
-              required
-            />
-          </div>
-        )}
-        <button type="submit">{isSignUp ? 'Sign Up' : 'Sign In'}</button>
+        <button type="submit">Sign In</button>
       </form>
-      <button onClick={() => setIsSignUp(!isSignUp)}>
-        {isSignUp
-          ? 'Already have an account? Sign In'
-          : 'Need an account? Sign Up'}
+      <button onClick={() => router.push('/auth/signup')}>
+        Need an account? Sign Up
       </button>
     </div>
   );
 };
 
-export default AuthPage;
+export default SignInPage;
