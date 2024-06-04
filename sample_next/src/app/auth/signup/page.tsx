@@ -18,7 +18,7 @@ const SignUpPage = () => {
     }
     try {
       await signUp(email, password);
-      router.push('/confirm?email=' + encodeURIComponent(email));
+      router.push('/auth/confirm?email=' + encodeURIComponent(email));
     } catch (error) {
       alert(`Sign up failed: ${error}`);
     }
