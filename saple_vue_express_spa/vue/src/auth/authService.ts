@@ -83,9 +83,6 @@ export const confirmSignUp = async (username: string, code: string) => {
   }
 };
 
-// src/app/auth/authService.ts
-// ...
-
 export const getSession = async () => {
   if (typeof window !== 'undefined') {
     const accessToken = sessionStorage.getItem('accessToken');
@@ -117,9 +114,6 @@ export const getSession = async () => {
   }
   return null;
 };
-
-// src/app/auth/authService.ts
-// ...
 
 export const signOut = async () => {
   try {
