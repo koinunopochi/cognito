@@ -1,25 +1,6 @@
 // app/api/sample/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { CognitoJwtVerifier } from 'aws-jwt-verify';
-import config from '@/app/auth/config.json';
-
-const userPoolId = config.userPoolId;
-const clientId = config.clientId;
-// const clientSecret = config.clientSecret;
-
-// if (!userPoolId || !clientId || !clientSecret) {
-if (!userPoolId || !clientId) {
-  throw new Error(
-    'COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, and COGNITO_CLIENT_SECRET must be set'
-  );
-}
-
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: userPoolId as string,
-  tokenUse: 'access',
-  clientId: clientId as string,
-  // clientSecret: clientSecret as string,
-});
+import { getUserData } from '@/app/auth/authService';
 
 const mockData = {
   'user1@example.com': {
@@ -54,11 +35,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const payload = await verifier.verify(accessToken);
+    const userData = await getUserData(accessToken);
+    // emailを取得
+    let userAttributes = userData.UserAttributes;
+    let emailAttribute = userAttributes.find(
+      (attribute) => attribute.Name === 'email'
+    );
 
-    console.log('payload: ', payload);
-    const email = payload.username;
-
+    let email = null;
+    if (emailAttribute) {
+      email = emailAttribute.Value;
+      console.log(email);
+    } else {
+      console.log('Email attribute not found');
+    }
     if (email) {
       const data = mockData[email];
 

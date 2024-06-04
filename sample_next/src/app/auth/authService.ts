@@ -148,3 +148,18 @@ export const signOut = async () => {
     throw error;
   }
 };
+
+export const getUserData = async (accessToken:string) => {
+  const params = {
+    AccessToken: accessToken,
+  };
+  try {
+    const command = new GetUserCommand(params);
+    const response = await cognitoClient.send(command);
+    console.log("User data: ", response);
+    return response;
+  } catch (error) {
+    console.error("Error getting user data: ", error);
+    throw error;
+  }
+};
