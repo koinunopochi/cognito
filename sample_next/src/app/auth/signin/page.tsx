@@ -20,7 +20,7 @@ const AuthPage = () => {
       if (session && typeof session.AccessToken !== 'undefined') {
         sessionStorage.setItem('accessToken', session.AccessToken);
         if (sessionStorage.getItem('accessToken')) {
-          router.push('/home');
+          router.push(`/home`);
         } else {
           console.error('Session token was not set properly.');
         }
