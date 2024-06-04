@@ -1,25 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const config = require('../vue/src/auth/config.json');
-const { CognitoJwtVerifier } = require('aws-jwt-verify');
-
-const userPoolId = config.userPoolId;
-const clientId = config.clientId;
-
-console.log('User Pool ID:', userPoolId);
-console.log('Client ID:', clientId);
-
-if (!userPoolId || !clientId) {
-  throw new Error(
-    'COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, and COGNITO_CLIENT_SECRET must be set'
-  );
-}
-
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: userPoolId,
-  tokenUse: 'access',
-  clientId: clientId,
-});
+const { getUserData } = require('./authService');
 
 const mockData = {
   'user1@example.com': {
@@ -44,30 +25,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/sample', async(req, res) => {
-  const query = req.query;
-  console.log('Query:', query);
-  console.log('Request Authorization:', req.headers.authorization);
+app.get('/api/sample', async (req, res) => {
   if (!req.headers.authorization) {
     res.status(401).json({ message: 'Unauthorized' });
     return;
   }
-  const token = req.headers.authorization.split(' ')[1];
+  const accessToken = req.headers.authorization.split(' ')[1];
 
-  try{
-    const payload =await verifier.verify(token);
-    console.log('Payload:', payload);
+  try {
+    const userData = await getUserData(accessToken);
+    // emailを取得
+    let userAttributes = userData.UserAttributes;
+    let emailAttribute = userAttributes.find(
+      (attribute) => attribute.Name === 'email'
+    );
 
-    const email = payload.username;
-
-    console.log('Request User:', email);
+    let email = null;
+    if (emailAttribute) {
+      email = emailAttribute.Value;
+      console.log(email);
+    } else {
+      console.log('Email attribute not found');
+    }
     if (!mockData[email]) {
       res.status(404).json({ message: 'Not Found' });
       return;
     }
 
     res.json(mockData[email]);
-  }catch(err){
+  } catch (err) {
     console.log('Error:', err);
     res.status(401).json({ message: 'Unauthorized' });
     return;
